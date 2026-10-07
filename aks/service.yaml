@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: manifest-manager-service
+  namespace: infra-manager
+spec:
+  ports:
+  - port: 80
+    targetPort: 5000
+  selector:
+    app: manifest-manager

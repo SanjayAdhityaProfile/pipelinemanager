@@ -1,0 +1,25 @@
+apiVersion: v1
+data:
+  AMUNDA_AUDIENCE: "zeebe.camunda.io"
+  CAMUNDA_AUDIENCE: "zeebe.camunda.io"
+  CAMUNDA_AUTH: "https://camunda8.kumaran.ai/auth/realms/camunda-platform/protocol/openid-connect/token"
+  CAMUNDA_AUTH_ENABLED: "true"
+  CAMUNDA_CLIENT_ID: "web-modeler-api"
+  CAMUNDA_CLIENT_SECRET: "hegsvEh8h4alYRPn6HEi1EC8alNH3FzC"
+  CAMUNDA_CORRELATION: "https://jfk-1.zeebe.camunda.io:443/fde52b88-9fca-47ca-804d-fafaf2f5b511/v2/messages/correlation"
+  CAMUNDA_MODELER_FILES_URL: "https://kaf-dev.kumaran.ai/camundaapi/modeler/files"
+  CAMUNDA_MODELER_MILESTONES_URL: "https://kaf-dev.kumaran.ai/camundaapi/modeler/milestones"
+  CAMUNDA_OPERATE_SEARCH_URL: "https://kaf-dev.kumaran.ai/camundaapi/operate/flow-node-instances/search"
+  CAMUNDA_PROCESS_DEF_URL: "https://kaf-dev.kumaran.ai/camundaapi/process-definitions"
+  CAMUNDA_REST_URL: "https://camunda8-orchestration.kumaran.ai/v2"
+  DB_DRIVER: "ODBC Driver 18 for SQL Server"
+  DB_NAME: "kaf_dev"
+  DB_PASS: "V7419nYrYmMQ"
+  DB_SERVER: "dev-mssql.kumaran.cloud,1433"
+  DB_USER: "kaf_dev_app"
+  DOCSPEC_EXECUTOR: "https://docspec-dev.kumaran.ai/executor"
+  K_PLATFORM_URL: "https://k-platform.kumaran.ai"
+kind: ConfigMap
+metadata:
+  name: camunda-proxy-service-kaf-config
+  namespace: kaf

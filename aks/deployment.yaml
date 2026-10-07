@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manifest-manager
+  namespace: infra-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: manifest-manager
+  template:
+    metadata:
+      labels:
+        app: manifest-manager
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: infra-manager-config
+        image: containerrepo/manifest-manager:tag
+        name: manifest-manager
+        ports:
+        - containerPort: 8000
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+      nodeSelector:
+        kubernetes.azure.com/scalesetpriority: spot
+      tolerations:
+      - effect: NoSchedule
+        key: kubernetes.azure.com/scalesetpriority
+        operator: Equal
+        value: spot
+      - effect: NoSchedule
+        key: Env
+        operator: Equal
+        value: idp-dev

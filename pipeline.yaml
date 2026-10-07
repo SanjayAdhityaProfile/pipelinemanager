@@ -1,0 +1,123 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+
+  dockerfilePath: 'Dockerfile'
+  buildId: '$(Build.BuildId)'
+  tag: '$(Build.BuildId)' # Define tag variable here for use in the Bash scripts
+  vmImage: 'ubuntu-latest'
+
+  imageRepository: 'manifest-manager' # will differ for each service
+
+  # Normal deployment (non sec)
+  dockerRegistryServiceConnection: 'chatbot-acr-5'
+  containerRegistry: 'kumaranchatbotazcontainerregistry.azurecr.io'
+  kubernetesServiceConnection: 'dev-aks'
+
+
+name: $(Build.BuildId)_$(Date:yyyyMMdd)_$(Rev:r)
+
+stages:
+- stage: preparing_image_to_deployment_dev
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+  jobs:
+  - job: building_and_pushing
+    pool:
+      vmImage: $(vmImage)
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: $(dockerRegistryServiceConnection)
+        repository: $(imageRepository)
+        command: 'buildAndPush'
+        Dockerfile: $(dockerfilePath)
+        tags: |
+          $(buildId)
+      displayName: 'Building and Pushing $(imageRepository):$(buildId)'
+
+- stage: Development_deployment_dev
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')  
+  displayName: Development_deployment 
+  jobs:
+  - job: Development_deployment
+    displayName: Development_deployment_in_ocp
+    pool:
+      vmImage: $(vmImage)
+    steps:
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: |
+          sed -i 's/containerrepo/$(containerRegistry)/g' ./aks/deployment.yaml
+
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: |
+          sed -i 's/tag/$(tag)/g' ./aks/deployment.yaml
+
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: |
+          cat ./aks/deployment.yaml
+
+    - task: Kubernetes@1
+      inputs:
+        connectionType: 'Kubernetes Service Connection'
+        kubernetesServiceEndpoint: $(kubernetesServiceConnection)
+        command: 'apply'
+        useConfigurationFile: true
+        configuration: './aks/deployment.yaml'
+
+- stage: service_deployment_dev
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+  trigger: manual  
+  jobs:
+  - job: applying_service_yaml
+    pool:
+      vmImage: $(vmImage)
+    steps:
+    - task: Kubernetes@1
+      inputs:
+        connectionType: 'Kubernetes Service Connection'
+        kubernetesServiceEndpoint: $(kubernetesServiceConnection)
+        command: 'apply'
+        useConfigurationFile: true
+        configuration: './aks/service.yaml'
+
+- stage: config_deployment_dev
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+  trigger: manual
+  jobs:
+  - job: applying_config_yaml
+    pool:
+      vmImage: $(vmImage)
+    steps:
+    - task: Kubernetes@1
+      inputs:
+        connectionType: 'Kubernetes Service Connection'
+        kubernetesServiceEndpoint: $(kubernetesServiceConnection)
+        command: 'apply'
+        useConfigurationFile: true
+        configuration: './aks/config.yaml'
+
+- stage: ingress_deployment_dev
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+  trigger: manual
+  jobs:
+  - job: applying_ingress_yaml
+    pool:
+      vmImage: $(vmImage)
+    steps:
+    - task: Kubernetes@1
+      inputs:
+        connectionType: 'Kubernetes Service Connection'
+        kubernetesServiceEndpoint: $(kubernetesServiceConnection)
+        command: 'apply'
+        useConfigurationFile: true
+        configuration: './aks/ingress.yaml'

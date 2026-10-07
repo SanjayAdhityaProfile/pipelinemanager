@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: infra-management-kumaran
+  namespace: infra-manager
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/backend-path-prefix: "/"
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: "kumaran.ai"
+spec:
+  rules:
+    - host: infra-management.kumaran.ai
+      http:
+        paths:
+          - path: /server/*
+            pathType: Prefix
+            backend:
+              service:
+                name: manifest-manager-service
+                port:
+                  number: 80
